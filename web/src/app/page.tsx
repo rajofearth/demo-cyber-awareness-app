@@ -35,6 +35,7 @@ const MapPanel = dynamic(
 export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const summaries = useQuery(api.captures.summaries);
   const stats = useQuery(api.captures.stats);
@@ -77,9 +78,27 @@ export default function Home() {
 
   const ready = summaries !== undefined && stats !== undefined;
 
+  const handleSelect = (deviceId: string | null) => {
+    setSelectedId(deviceId);
+    setDrawerOpen(false);
+  };
+
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-bezel text-ink">
-      <aside className="flex h-full w-[300px] shrink-0 flex-col border-r border-hairline bg-sub">
+      {drawerOpen ? (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+        />
+      ) : null}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex h-full w-[300px] transform flex-col border-r border-hairline bg-sub transition-transform duration-200 md:static md:translate-x-0 ${
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-hairline px-4">
           <span className="relative flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flag opacity-60" />
@@ -92,24 +111,24 @@ export default function Home() {
           <DeviceList
             devices={filtered}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={handleSelect}
             query={query}
             onQuery={setQuery}
           />
         </div>
 
-        <div className="shrink-0 space-y-2 border-t border-hairline p-3">
+        <div className="shrink-0 space-y-2 border-t border-hairline p-3 pb-[env(safe-area-inset-bottom)]">
           <HoldToConfirm
             onConfirm={() => void clearAll()}
             confirmLabel="Erased"
-            className="w-full text-flag"
+            className="min-h-[44px] w-full text-flag"
           >
             Hold to erase all data
           </HoldToConfirm>
           <form action={logout}>
             <button
               type="submit"
-              className="mat-cap w-full rounded-[10px] py-2 text-[12.5px] text-ink-2 hover:bg-white/[0.04]"
+              className="mat-cap min-h-[44px] w-full rounded-[10px] px-3 py-2 text-[12.5px] text-ink-2 hover:bg-white/[0.04]"
             >
               Sign out
             </button>
@@ -118,24 +137,43 @@ export default function Home() {
       </aside>
 
       <main className="flex h-full min-w-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-3 border-b border-hairline px-5">
-          <span className="truncate text-[13px] font-medium">
-            {selected ? selected.deviceModel : "All devices"}
-          </span>
-          <span className="meta text-ink-3">
-            {selected
-              ? `${selected.captureCount} EVENTS · LAST ${timeAgo(selected.lastSeen).toUpperCase()}`
-              : `${devices.length} DEVICES`}
-          </span>
-          <div className="ml-auto flex items-center gap-4">
+        <div className="flex h-14 shrink-0 items-center gap-3 border-b border-hairline px-4 sm:px-5">
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={() => setDrawerOpen(true)}
+            className="mat-cap grid size-11 shrink-0 place-items-center rounded-[10px] md:hidden"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              className="size-4 text-ink-2"
+            >
+              <path d="M2 4h12M2 8h12M2 12h12" />
+            </svg>
+          </button>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13px] font-medium">
+              {selected ? selected.deviceModel : "All devices"}
+            </div>
+            <div className="meta truncate text-ink-3 sm:hidden">
+              {selected
+                ? `${selected.captureCount} EVENTS · ${timeAgo(selected.lastSeen).toUpperCase()}`
+                : `${devices.length} DEVICES`}
+            </div>
+          </div>
+          <div className="ml-auto hidden shrink-0 items-center gap-4 sm:flex">
             <Meta>{stats ? `${stats.totalCaptures} CAPTURES` : "CONNECTING"}</Meta>
             <Meta className="text-flag">
-              {stats ? `${stats.allGranted} FULL GRANTS` : ""}
+              {stats ? `${stats.fullGrants} FULL GRANTS` : ""}
             </Meta>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:p-5">
           {!ready ? (
             <Panel className="p-6">
               <SkeletonSwap ready={false} lines={8}>

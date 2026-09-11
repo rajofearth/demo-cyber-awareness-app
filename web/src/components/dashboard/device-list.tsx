@@ -40,7 +40,7 @@ export function DeviceList({
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search devices"
-          className="mat-well w-full rounded-[10px] py-2 pr-3 pl-8 text-[13px] text-ink outline-none placeholder:text-ink-3"
+          className="mat-well w-full rounded-[10px] py-3 pr-3 pl-8 text-[13px] text-ink outline-none placeholder:text-ink-3"
         />
       </div>
       <div className="no-bar flex-1 overflow-y-auto">
@@ -54,7 +54,7 @@ export function DeviceList({
             <button
               type="button"
               onClick={() => onSelect(null)}
-              className={`mb-1 w-full rounded-[10px] px-3 py-2.5 text-left transition-colors ${
+              className={`mb-1 w-full rounded-[10px] px-3 py-3 text-left transition-colors ${
                 selectedId === null
                   ? "mat-row ring-1 ring-accent/40"
                   : "hover:bg-white/[0.03]"
@@ -68,7 +68,7 @@ export function DeviceList({
                 key={device.deviceId}
                 type="button"
                 onClick={() => onSelect(device.deviceId)}
-                className={`mb-1 w-full rounded-[10px] px-3 py-2.5 text-left transition-colors ${
+                className={`mb-1 w-full rounded-[10px] px-3 py-3 text-left transition-colors ${
                   selectedId === device.deviceId
                     ? "mat-row ring-1 ring-accent/40"
                     : "hover:bg-white/[0.03]"

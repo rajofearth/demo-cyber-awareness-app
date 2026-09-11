@@ -50,16 +50,16 @@ function LocationPanel({
       <SectionTitle>LOCATION</SectionTitle>
       {located ? (
         <div className="space-y-3">
-          <div className="tnum text-[18px] font-semibold text-ink">
+          <div className="tnum text-[15px] font-semibold text-ink sm:text-[18px]">
             {lat !== undefined && lon !== undefined ? `${lat.toFixed(5)}, ${lon.toFixed(5)}` : "—"}
           </div>
-          <div className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-[12px]">
+          <div className="grid grid-cols-[92px_1fr] gap-x-3 gap-y-1.5 text-[11px] sm:grid-cols-[110px_1fr] sm:text-[12px]">
             <Meta>Accuracy</Meta>
             <div className="tnum text-ink">
               {accuracy !== undefined ? `±${Math.round(accuracy)} m` : "—"}
             </div>
             <Meta>Address</Meta>
-            <div className="text-ink">{address ?? "—"}</div>
+            <div className="min-w-0 break-words text-ink">{address ?? "—"}</div>
             <Meta>Captured</Meta>
             <div className="tnum text-ink">{formatDateTime(locatedAt)}</div>
           </div>
@@ -149,7 +149,7 @@ export function DeviceDetail({
           if (value === "map") {
             return (
               <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="h-[520px]">{map}</div>
+                <div className="h-[360px] xl:h-[520px]">{map}</div>
                 <LocationPanel
                   lat={lat}
                   lon={lon}

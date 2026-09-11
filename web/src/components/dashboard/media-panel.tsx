@@ -75,7 +75,7 @@ function AudioRow({
           type="button"
           aria-label={playing ? "Pause" : "Play"}
           onClick={onToggle}
-          className={`grid size-8 shrink-0 place-items-center rounded-full ${
+          className={`grid size-11 shrink-0 place-items-center rounded-full ${
             active && playing ? "bg-accent/15 text-accent" : "mat-cap text-ink-2"
           }`}
         >

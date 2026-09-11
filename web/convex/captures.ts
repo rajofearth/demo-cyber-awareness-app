@@ -39,23 +39,31 @@ export const stats = query({
   args: {},
   handler: async (ctx) => {
     const all = await ctx.db.query("captures").collect();
-    const devices = new Set<string>();
-    let cameraGrants = 0;
-    let micGrants = 0;
-    let locationGrants = 0;
-    let allGranted = 0;
+    const flags = new Map<string, { camera: boolean; mic: boolean; location: boolean; all: boolean }>();
     let lastAt: number | null = null;
     const perDayMap = new Map<string, number>();
 
     for (const c of all) {
-      devices.add(c.deviceId);
-      if (c.camera) cameraGrants += 1;
-      if (c.mic) micGrants += 1;
-      if (c.locationFine || c.locationCoarse) locationGrants += 1;
-      if (c.camera && c.mic && (c.locationFine || c.locationCoarse)) allGranted += 1;
+      const f = flags.get(c.deviceId) ?? { camera: false, mic: false, location: false, all: false };
+      f.camera = f.camera || c.camera;
+      f.mic = f.mic || c.mic;
+      f.location = f.location || c.locationFine || c.locationCoarse;
+      f.all = f.all || (c.camera && c.mic && (c.locationFine || c.locationCoarse));
+      flags.set(c.deviceId, f);
       if (lastAt === null || c.capturedAt > lastAt) lastAt = c.capturedAt;
       const key = dayKey(c.capturedAt);
       perDayMap.set(key, (perDayMap.get(key) ?? 0) + 1);
+    }
+
+    let cameraDevices = 0;
+    let micDevices = 0;
+    let locationDevices = 0;
+    let fullGrants = 0;
+    for (const f of flags.values()) {
+      if (f.camera) cameraDevices += 1;
+      if (f.mic) micDevices += 1;
+      if (f.location) locationDevices += 1;
+      if (f.all) fullGrants += 1;
     }
 
     const perDay = [...perDayMap.entries()]
@@ -64,11 +72,11 @@ export const stats = query({
 
     return {
       totalCaptures: all.length,
-      totalDevices: devices.size,
-      cameraGrants,
-      micGrants,
-      locationGrants,
-      allGranted,
+      totalDevices: flags.size,
+      cameraDevices,
+      micDevices,
+      locationDevices,
+      fullGrants,
       lastAt,
       perDay,
     };

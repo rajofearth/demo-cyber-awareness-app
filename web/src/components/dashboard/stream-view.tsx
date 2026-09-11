@@ -24,7 +24,9 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <>
       <Meta>{label}</Meta>
-      <div className={missing ? "text-ink-3" : "text-ink"}>{missing ? "—" : value}</div>
+      <div className={`min-w-0 break-words ${missing ? "text-ink-3" : "text-ink"}`}>
+        {missing ? "—" : value}
+      </div>
     </>
   );
 }
@@ -63,7 +65,7 @@ export function StreamView({
       ) : (
         <div
           {...scrollProps}
-          className="relative mt-1 max-h-[560px] min-h-[220px] overflow-y-auto pr-1"
+          className="relative mt-1 max-h-[60vh] min-h-[220px] overflow-y-auto pr-1 sm:max-h-[560px]"
         >
           <NewItemsPill count={unread} onJump={jump} />
           <div className="space-y-2 pt-3">
@@ -75,7 +77,7 @@ export function StreamView({
                     type="button"
                     aria-expanded={open}
                     onClick={() => setExpandedId(open ? null : capture._id)}
-                    className="flex w-full items-center justify-between gap-3 text-left"
+                    className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 text-left"
                   >
                     <span className="flex min-w-0 items-baseline gap-2">
                       <span className="tnum text-[12.5px] text-ink-2">
@@ -83,7 +85,7 @@ export function StreamView({
                       </span>
                       <Meta>{timeAgo(capture.capturedAt)}</Meta>
                     </span>
-                    <span className="flex shrink-0 items-center gap-2">
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
                       <Permissions c={capture} />
                       <svg
                         viewBox="0 0 16 16"
@@ -104,7 +106,7 @@ export function StreamView({
 
                   {open ? (
                     <div className="pt-3">
-                      <div className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-1.5 text-[12px]">
+                      <div className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-[11px] sm:grid-cols-[130px_1fr] sm:text-[12px]">
                         <Field label="Device ID" value={capture.deviceId} />
                         <Field label="Model" value={capture.deviceModel} />
                         <Field label="OS" value={capture.osVersion} />
@@ -149,7 +151,7 @@ export function StreamView({
                       </div>
 
                       <div className="mat-well mt-3 rounded-[10px] p-3">
-                        <div className="flex items-center justify-between pb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
                           <Meta>RAW PAYLOAD</Meta>
                           <CopyButton value={JSON.stringify(capture)} />
                         </div>

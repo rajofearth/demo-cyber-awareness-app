@@ -1,0 +1,4 @@
+## Copy this file to local.properties and fill in your local values (local.properties is gitignored).
+sdk.dir=C:\\path\\to\\Android\\Sdk
+INGEST_KEY=your-ingest-key-from-convex-env
+INGEST_URL=https://your-deployment.convex.site/api/ingest

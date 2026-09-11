@@ -49,10 +49,10 @@ export type LocationPoint = {
 export type Stats = {
   totalCaptures: number;
   totalDevices: number;
-  cameraGrants: number;
-  micGrants: number;
-  locationGrants: number;
-  allGranted: number;
+  cameraDevices: number;
+  micDevices: number;
+  locationDevices: number;
+  fullGrants: number;
   lastAt: number | null;
   perDay: Array<{ day: string; captures: number }>;
 };

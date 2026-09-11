@@ -18,7 +18,7 @@ function BarRow({ label, value, max }: { label: string; value: number; max: numb
   return (
     <div className="flex items-center gap-3">
       <span className="w-[74px] shrink-0 text-[12.5px] text-ink-2">{label}</span>
-      <div className="h-[26px] flex-1 overflow-hidden rounded-[7px] bg-well">
+      <div className="h-[26px] min-w-0 flex-1 overflow-hidden rounded-[7px] bg-well">
         <div
           className="h-full rounded-[7px] bg-accent transition-[width] duration-500"
           style={{ width: `${pct}%` }}
@@ -57,7 +57,8 @@ export function GlobalOverview({
   map: ReactNode;
 }) {
   const empty = stats.totalCaptures === 0 || devices.length === 0;
-  const rate = stats.totalDevices > 0 ? Math.round((stats.allGranted / stats.totalDevices) * 100) : 0;
+  const rate =
+    stats.totalDevices > 0 ? Math.round((stats.fullGrants / stats.totalDevices) * 100) : 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -69,8 +70,11 @@ export function GlobalOverview({
         />
         <Stat
           label="FULL GRANTS"
+          hint="of all devices"
           value={
-            <ValueFlash value={stats.allGranted} label="Full grants" className="text-flag" />
+            <span className="text-flag">
+              <ValueFlash value={stats.fullGrants} label="Full grants" />
+            </span>
           }
         />
         <Stat label="LAST CAPTURE" value={stats.lastAt ? timeAgo(stats.lastAt) : "—"} />
@@ -85,15 +89,15 @@ export function GlobalOverview({
         </Panel>
       ) : (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="h-[520px]">{map}</div>
+          <div className="h-[360px] xl:h-[520px]">{map}</div>
 
           <div className="flex flex-col gap-4">
             <Panel className="p-4">
               <SectionTitle>GRANTS BY PERMISSION</SectionTitle>
               <div className="space-y-2.5">
-                <BarRow label="Camera" value={stats.cameraGrants} max={stats.totalCaptures} />
-                <BarRow label="Microphone" value={stats.micGrants} max={stats.totalCaptures} />
-                <BarRow label="Location" value={stats.locationGrants} max={stats.totalCaptures} />
+                <BarRow label="Camera" value={stats.cameraDevices} max={stats.totalDevices} />
+                <BarRow label="Microphone" value={stats.micDevices} max={stats.totalDevices} />
+                <BarRow label="Location" value={stats.locationDevices} max={stats.totalDevices} />
               </div>
             </Panel>
 
@@ -104,7 +108,7 @@ export function GlobalOverview({
                   {rate}%
                 </span>
                 <Meta>
-                  {stats.allGranted} OF {stats.totalDevices} DEVICES
+                  {stats.fullGrants} OF {stats.totalDevices} DEVICES
                 </Meta>
               </div>
               <div className="mt-3 h-[8px] overflow-hidden rounded-full bg-well">
