@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ReactDOM from "react-dom";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import "./globals.css";
 
@@ -12,6 +13,18 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const convexBase = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(/https:\/\//, "");
+const convexCloud = convexBase ? `https://${convexBase.replace(".site", ".cloud")}` : "";
+const convexSite = convexBase ? `https://${convexBase.replace(".cloud", ".site")}` : "";
+if (convexCloud) {
+  ReactDOM.preconnect(convexCloud);
+  ReactDOM.preconnect(convexSite);
+}
+
+export const viewport: Viewport = {
+  themeColor: "#141312",
+};
 
 export const metadata: Metadata = {
   title: "Permission Harvest — Cyber Awareness Demo",

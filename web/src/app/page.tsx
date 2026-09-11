@@ -1,12 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { DeviceList } from "@/components/dashboard/device-list";
 import { GlobalOverview } from "@/components/dashboard/global-overview";
 import { DeviceDetail } from "@/components/dashboard/device-detail";
-import { MapPanel } from "@/components/dashboard/map-panel";
 import { HoldToConfirm } from "@/components/interior/hold-to-confirm";
 import { SkeletonSwap } from "@/components/interior/skeleton-swap";
 import { logout } from "@/app/login/actions";
@@ -19,6 +19,18 @@ import {
   type DeviceSummary,
   type LocationPoint,
 } from "@/lib/ui";
+
+const MapPanel = dynamic(
+  () => import("@/components/dashboard/map-panel").then((m) => m.MapPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mat-panel h-full rounded-[14px]">
+        <EmptyState title="Loading map" />
+      </div>
+    ),
+  },
+);
 
 export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);

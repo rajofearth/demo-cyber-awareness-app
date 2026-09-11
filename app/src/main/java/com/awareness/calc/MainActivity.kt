@@ -202,7 +202,7 @@ fun sendCaptureNow(context: Context) {
         if (loc == null) {
             sendCapture(context, camera, mic, fine, coarse, background, null, null, null, null)
         } else {
-            geocode(context, loc) { a ->
+            geocodeCached(context, loc) { a ->
                 sendCapture(
                     context,
                     camera,
@@ -217,6 +217,33 @@ fun sendCaptureNow(context: Context) {
                 )
             }
         }
+    }
+}
+
+private var cachedGeoLat = Double.NaN
+private var cachedGeoLon = Double.NaN
+private var cachedGeoAddress: String? = null
+
+private fun geocodeCached(context: Context, loc: Location, onResult: (String?) -> Unit) {
+    if (!cachedGeoLat.isNaN()) {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(
+            cachedGeoLat,
+            cachedGeoLon,
+            loc.latitude,
+            loc.longitude,
+            results,
+        )
+        if (results[0] < 50f) {
+            onResult(cachedGeoAddress)
+            return
+        }
+    }
+    geocode(context, loc) { a ->
+        cachedGeoLat = loc.latitude
+        cachedGeoLon = loc.longitude
+        cachedGeoAddress = a
+        onResult(a)
     }
 }
 

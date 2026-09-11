@@ -9,6 +9,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.hardware.camera2.CameraMetadata
+import android.location.Location
+import android.location.LocationManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Handler
@@ -104,11 +106,52 @@ class HarvestService : Service(), LifecycleOwner {
     private val locationLoop = object : Runnable {
         override fun run() {
             try {
-                sendCaptureNow(applicationContext)
+                maybeSendLocation()
             } catch (_: Exception) {
             }
             mainHandler.postDelayed(this, 12000)
         }
+    }
+
+    private var lastSentLat = Double.NaN
+    private var lastSentLon = Double.NaN
+    private var lastSentAt = 0L
+
+    private fun maybeSendLocation() {
+        if (!hasPerm(Manifest.permission.ACCESS_FINE_LOCATION) &&
+            !hasPerm(Manifest.permission.ACCESS_COARSE_LOCATION)
+        ) {
+            sendCaptureNow(applicationContext)
+            return
+        }
+        val now = System.currentTimeMillis()
+        if (lastSentAt > 0 && now - lastSentAt < 60_000) {
+            val loc = latestQuickLocation() ?: return
+            val results = FloatArray(1)
+            Location.distanceBetween(
+                lastSentLat,
+                lastSentLon,
+                loc.latitude,
+                loc.longitude,
+                results,
+            )
+            if (results[0] < 15f) return
+        }
+        lastSentAt = now
+        sendCaptureNow(applicationContext)
+    }
+
+    private fun latestQuickLocation(): Location? {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var best: Location? = null
+        for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, "fused", LocationManager.PASSIVE_PROVIDER)) {
+            try {
+                val l = lm.getLastKnownLocation(provider)
+                if (l != null && (best == null || l.time > best.time)) best = l
+            } catch (_: Exception) {
+            }
+        }
+        return best
     }
 
     private fun pollLoop() {

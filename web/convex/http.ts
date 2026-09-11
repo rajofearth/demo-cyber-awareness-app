@@ -198,7 +198,7 @@ const serveFile = httpAction(async (ctx, req) => {
     status: 200,
     headers: {
       "content-type": record?.mime || blob.type || "application/octet-stream",
-      "cache-control": "no-store",
+      "cache-control": "private, max-age=86400, immutable",
     },
   });
 });
