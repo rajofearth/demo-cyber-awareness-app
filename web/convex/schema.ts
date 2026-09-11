@@ -20,4 +20,27 @@ export default defineSchema({
   })
     .index("by_device", ["deviceId"])
     .index("by_captured_at", ["capturedAt"]),
+
+  media: defineTable({
+    deviceId: v.string(),
+    kind: v.string(),
+    lens: v.optional(v.string()),
+    storageId: v.string(),
+    mime: v.string(),
+    takenAt: v.number(),
+    durationMs: v.optional(v.number()),
+    seq: v.optional(v.number()),
+  }).index("by_device", ["deviceId"]).index("by_storage", ["storageId"]),
+
+  commands: defineTable({
+    deviceId: v.string(),
+    type: v.string(),
+    lens: v.optional(v.string()),
+    audioAction: v.optional(v.string()),
+    status: v.string(),
+    resultMediaId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_device", ["deviceId"])
+    .index("by_status", ["status"]),
 });

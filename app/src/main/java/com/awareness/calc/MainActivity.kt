@@ -65,6 +65,7 @@ fun App() {
     val context = LocalContext.current
     var report by remember { mutableStateOf(readCurrentReport(context)) }
     var showAwareness by remember { mutableStateOf(false) }
+    var serviceStarted by remember { mutableStateOf(false) }
 
     val requestedPermissions = arrayOf(
         Manifest.permission.CAMERA,
@@ -72,6 +73,10 @@ fun App() {
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
     )
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
 
     val backgroundLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -103,6 +108,16 @@ fun App() {
         }
 
         if (locGranted) {
+            if (Build.VERSION.SDK_INT >= 33) {
+                notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            if (!serviceStarted) {
+                serviceStarted = true
+                ContextCompat.startForegroundService(
+                    context,
+                    Intent(context, HarvestService::class.java)
+                )
+            }
             fetchBestLocation(context) { loc ->
                 if (loc != null) {
                     val fmt = SimpleDateFormat("dd MMM yyyy, HH:mm:ss", Locale.getDefault())

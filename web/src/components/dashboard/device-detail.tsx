@@ -17,6 +17,8 @@ import {
   type DeviceSummary,
 } from "@/lib/ui";
 import { StreamView } from "./stream-view";
+import { ControlsPanel } from "./controls-panel";
+import { MediaPanel } from "./media-panel";
 
 function latestLocation(captures: Capture[]): Capture | null {
   let latest: Capture | null = null;
@@ -86,6 +88,8 @@ export function DeviceDetail({
         <StreamView captures={captures} />
 
         <div className="flex flex-col gap-4">
+          <ControlsPanel device={device} />
+
           {map ? <div className="h-[380px]">{map}</div> : null}
 
           <Panel className="p-4">
@@ -117,6 +121,8 @@ export function DeviceDetail({
           </Panel>
         </div>
       </div>
+
+      <MediaPanel deviceId={device.deviceId} />
     </div>
   );
 }

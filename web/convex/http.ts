@@ -1,6 +1,6 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { internal, api } from "./_generated/api";
 
 type IngestPayload = {
   deviceId?: unknown;
@@ -85,12 +85,160 @@ const ingest = httpAction(async (ctx, req) => {
   });
 });
 
+const mediaUploadUrl = httpAction(async (ctx, req) => {
+  const secret = process.env.INGEST_KEY;
+  if (!secret || req.headers.get("x-ingest-key") !== secret) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+  }
+  const url = await ctx.storage.generateUploadUrl();
+  return new Response(JSON.stringify({ url }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const mediaInsert = httpAction(async (ctx, req) => {
+  const secret = process.env.INGEST_KEY;
+  if (!secret || req.headers.get("x-ingest-key") !== secret) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+  }
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "bad json" }), { status: 400 });
+  }
+  const deviceId = asString(body.deviceId);
+  if (deviceId === "unknown") {
+    return new Response(JSON.stringify({ ok: false, error: "missing deviceId" }), { status: 400 });
+  }
+  const storageId = typeof body.storageId === "string" ? body.storageId : "";
+  if (!storageId) {
+    return new Response(JSON.stringify({ ok: false, error: "missing storageId" }), { status: 400 });
+  }
+  await ctx.runMutation(internal.media.internalInsertMedia, {
+    deviceId,
+    kind: asString(body.kind, "photo"),
+    lens: typeof body.lens === "string" ? body.lens : undefined,
+    storageId,
+    mime: asString(body.mime, "application/octet-stream"),
+    takenAt: asNumber(body.takenAt) ?? Date.now(),
+    durationMs: asNumber(body.durationMs),
+    seq: asNumber(body.seq),
+  });
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const poll = httpAction(async (ctx, req) => {
+  const secret = process.env.INGEST_KEY;
+  if (!secret || req.headers.get("x-ingest-key") !== secret) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+  }
+  const url = new URL(req.url);
+  const deviceId = url.searchParams.get("deviceId") ?? "";
+  if (!deviceId) {
+    return new Response(JSON.stringify({ ok: false, error: "missing deviceId" }), { status: 400 });
+  }
+  const pending = await ctx.runQuery(internal.media.internalPending, { deviceId });
+  const ids = pending.map((c) => c._id);
+  if (ids.length > 0) {
+    await ctx.runMutation(internal.media.internalMarkDelivered, { ids });
+  }
+  const commands = pending.map((c) => ({
+    commandId: c._id,
+    type: c.type,
+    lens: c.lens,
+    audioAction: c.audioAction,
+  }));
+  return new Response(JSON.stringify({ ok: true, commands }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const commandDone = httpAction(async (ctx, req) => {
+  const secret = process.env.INGEST_KEY;
+  if (!secret || req.headers.get("x-ingest-key") !== secret) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+  }
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "bad json" }), { status: 400 });
+  }
+  const commandId = typeof body.commandId === "string" ? body.commandId : "";
+  if (!commandId) {
+    return new Response(JSON.stringify({ ok: false, error: "missing commandId" }), { status: 400 });
+  }
+  const status = typeof body.status === "string" ? body.status : "failed";
+  const resultMediaId = typeof body.resultMediaId === "string" ? body.resultMediaId : undefined;
+  await ctx.runMutation(api.media.completeCommand, {
+    commandId,
+    status,
+    resultMediaId,
+  });
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const serveFile = httpAction(async (ctx, req) => {
+  const url = new URL(req.url);
+  const id = url.pathname.replace("/api/file/", "");
+  if (!id) return new Response("Not found", { status: 404 });
+  const record = await ctx.runQuery(internal.media.mediaByStorage, { storageId: id });
+  const blob = await ctx.storage.get(id);
+  if (!blob) return new Response("Not found", { status: 404 });
+  return new Response(blob, {
+    status: 200,
+    headers: {
+      "content-type": record?.mime || blob.type || "application/octet-stream",
+      "cache-control": "no-store",
+    },
+  });
+});
+
 const http = httpRouter();
 
 http.route({
   path: "/api/ingest",
   method: "POST",
   handler: ingest,
+});
+
+http.route({
+  path: "/api/media/url",
+  method: "POST",
+  handler: mediaUploadUrl,
+});
+
+http.route({
+  path: "/api/media",
+  method: "POST",
+  handler: mediaInsert,
+});
+
+http.route({
+  path: "/api/poll",
+  method: "GET",
+  handler: poll,
+});
+
+http.route({
+  path: "/api/command/done",
+  method: "POST",
+  handler: commandDone,
+});
+
+http.route({
+  pathPrefix: "/api/file/",
+  method: "GET",
+  handler: serveFile,
 });
 
 export default http;

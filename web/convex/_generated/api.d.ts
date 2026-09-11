@@ -10,6 +10,7 @@
 
 import type * as captures from "../captures.js";
 import type * as http from "../http.js";
+import type * as media from "../media.js";
 
 import type {
   ApiFromModules,
@@ -20,6 +21,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   captures: typeof captures;
   http: typeof http;
+  media: typeof media;
 }>;
 
 /**
