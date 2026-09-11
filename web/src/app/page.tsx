@@ -9,6 +9,7 @@ import { DeviceDetail } from "@/components/dashboard/device-detail";
 import { MapPanel } from "@/components/dashboard/map-panel";
 import { HoldToConfirm } from "@/components/interior/hold-to-confirm";
 import { SkeletonSwap } from "@/components/interior/skeleton-swap";
+import { logout } from "@/app/login/actions";
 import {
   EmptyState,
   Meta,
@@ -85,7 +86,7 @@ export default function Home() {
           />
         </div>
 
-        <div className="shrink-0 border-t border-hairline p-3">
+        <div className="shrink-0 space-y-2 border-t border-hairline p-3">
           <HoldToConfirm
             onConfirm={() => void clearAll()}
             confirmLabel="Erased"
@@ -93,6 +94,14 @@ export default function Home() {
           >
             Hold to erase all data
           </HoldToConfirm>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="mat-cap w-full rounded-[10px] py-2 text-[12.5px] text-ink-2 hover:bg-white/[0.04]"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
       </aside>
 

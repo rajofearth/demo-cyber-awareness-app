@@ -43,4 +43,11 @@ export default defineSchema({
   })
     .index("by_device", ["deviceId"])
     .index("by_status", ["status"]),
+
+  authConfig: defineTable({
+    saltHex: v.string(),
+    hash: v.string(),
+    failedCount: v.optional(v.number()),
+    lockUntil: v.optional(v.number()),
+  }),
 });

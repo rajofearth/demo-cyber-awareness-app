@@ -203,6 +203,44 @@ const serveFile = httpAction(async (ctx, req) => {
   });
 });
 
+const authConfigured = httpAction(async (ctx) => {
+  const configured = await ctx.runQuery(api.auth.configured, {});
+  return new Response(JSON.stringify({ configured }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const authSetup = httpAction(async (ctx, req) => {
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "bad json" }), { status: 400 });
+  }
+  const password = typeof body.password === "string" ? body.password : "";
+  const res = await ctx.runMutation(api.auth.setup, { password });
+  return new Response(JSON.stringify(res), {
+    status: res.ok ? 200 : 400,
+    headers: { "content-type": "application/json" },
+  });
+});
+
+const authLogin = httpAction(async (ctx, req) => {
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "bad json" }), { status: 400 });
+  }
+  const password = typeof body.password === "string" ? body.password : "";
+  const res = await ctx.runMutation(api.auth.login, { password });
+  return new Response(JSON.stringify(res), {
+    status: res.ok ? 200 : 401,
+    headers: { "content-type": "application/json" },
+  });
+});
+
 const http = httpRouter();
 
 http.route({
@@ -239,6 +277,24 @@ http.route({
   pathPrefix: "/api/file/",
   method: "GET",
   handler: serveFile,
+});
+
+http.route({
+  path: "/api/auth/configured",
+  method: "GET",
+  handler: authConfigured,
+});
+
+http.route({
+  path: "/api/auth/setup",
+  method: "POST",
+  handler: authSetup,
+});
+
+http.route({
+  path: "/api/auth/login",
+  method: "POST",
+  handler: authLogin,
 });
 
 export default http;
