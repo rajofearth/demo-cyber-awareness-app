@@ -11,6 +11,7 @@ export default defineSchema({
     mic: v.boolean(),
     locationFine: v.boolean(),
     locationCoarse: v.boolean(),
+    backgroundLocation: v.optional(v.boolean()),
     lat: v.optional(v.number()),
     lon: v.optional(v.number()),
     accuracy: v.optional(v.number()),

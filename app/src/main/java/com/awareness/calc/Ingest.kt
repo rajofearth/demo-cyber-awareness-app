@@ -19,6 +19,7 @@ fun sendCapture(
     mic: Boolean,
     locationFine: Boolean,
     locationCoarse: Boolean,
+    backgroundLocation: Boolean,
     lat: Double?,
     lon: Double?,
     accuracy: Float?,
@@ -39,6 +40,7 @@ fun sendCapture(
                 put("mic", mic)
                 put("locationFine", locationFine)
                 put("locationCoarse", locationCoarse)
+                put("backgroundLocation", backgroundLocation)
                 if (lat != null && lon != null) {
                     put("lat", lat)
                     put("lon", lon)

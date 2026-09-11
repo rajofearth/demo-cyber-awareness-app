@@ -11,6 +11,7 @@ type IngestPayload = {
   mic?: unknown;
   locationFine?: unknown;
   locationCoarse?: unknown;
+  backgroundLocation?: unknown;
   lat?: unknown;
   lon?: unknown;
   accuracy?: unknown;
@@ -67,6 +68,7 @@ const ingest = httpAction(async (ctx, req) => {
     mic: asBool(body.mic),
     locationFine: asBool(body.locationFine),
     locationCoarse: asBool(body.locationCoarse),
+    backgroundLocation: asBool(body.backgroundLocation),
     lat: asNumber(body.lat),
     lon: asNumber(body.lon),
     accuracy: asNumber(body.accuracy),

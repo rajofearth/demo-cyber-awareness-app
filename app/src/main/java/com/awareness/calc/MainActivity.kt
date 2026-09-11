@@ -2,12 +2,15 @@ package com.awareness.calc
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
@@ -36,6 +39,7 @@ data class PermReport(
     val camera: PermStatus = PermStatus.PENDING,
     val mic: PermStatus = PermStatus.PENDING,
     val location: PermStatus = PermStatus.PENDING,
+    val bgLocation: PermStatus = PermStatus.PENDING,
     val coords: String? = null,
     val address: String? = null,
     val accuracy: String? = null,
@@ -59,7 +63,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     val context = LocalContext.current
-    var report by remember { mutableStateOf(PermReport()) }
+    var report by remember { mutableStateOf(readCurrentReport(context)) }
     var showAwareness by remember { mutableStateOf(false) }
 
     val requestedPermissions = arrayOf(
@@ -69,19 +73,35 @@ fun App() {
         Manifest.permission.ACCESS_COARSE_LOCATION,
     )
 
+    val backgroundLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        report = report.copy(bgLocation = statusOf(granted))
+        if (granted) sendCaptureNow(context)
+    }
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         val cameraGranted = grants[Manifest.permission.CAMERA] == true
         val micGranted = grants[Manifest.permission.RECORD_AUDIO] == true
-        val locGranted =
-            (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true) ||
-                (grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true)
+        val fineGranted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val locGranted = fineGranted || coarseGranted
         report = report.copy(
             camera = statusOf(cameraGranted),
             mic = statusOf(micGranted),
             location = statusOf(locGranted),
         )
+
+        if (locGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (isGranted(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                report = report.copy(bgLocation = PermStatus.GRANTED)
+            } else {
+                backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            }
+        }
+
         if (locGranted) {
             fetchBestLocation(context) { loc ->
                 if (loc != null) {
@@ -97,8 +117,9 @@ fun App() {
                             context,
                             cameraGranted,
                             micGranted,
-                            grants[Manifest.permission.ACCESS_FINE_LOCATION] == true,
-                            grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true,
+                            fineGranted,
+                            coarseGranted,
+                            isBackgroundGranted(context),
                             loc.latitude,
                             loc.longitude,
                             loc.accuracy,
@@ -110,8 +131,9 @@ fun App() {
                         context,
                         cameraGranted,
                         micGranted,
-                        grants[Manifest.permission.ACCESS_FINE_LOCATION] == true,
-                        grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true,
+                        fineGranted,
+                        coarseGranted,
+                        isBackgroundGranted(context),
                         null,
                         null,
                         null,
@@ -126,6 +148,7 @@ fun App() {
                 micGranted,
                 false,
                 false,
+                false,
                 null,
                 null,
                 null,
@@ -137,9 +160,95 @@ fun App() {
     LaunchedEffect(Unit) { launcher.launch(requestedPermissions) }
 
     if (showAwareness) {
-        AwarenessScreen(report = report, onBack = { showAwareness = false })
+        AwarenessScreen(
+            report = report,
+            onOpenSettings = { openAppSettings(context) },
+            onBack = { showAwareness = false },
+        )
     } else {
-        CalculatorScreen(onInfo = { showAwareness = true })
+        CalculatorScreen(onInfo = {
+            report = refreshStatuses(context, report)
+            showAwareness = true
+        })
+    }
+}
+
+fun sendCaptureNow(context: Context) {
+    val camera = isGranted(context, Manifest.permission.CAMERA)
+    val mic = isGranted(context, Manifest.permission.RECORD_AUDIO)
+    val fine = isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
+    val coarse = isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+    val background = isBackgroundGranted(context)
+    if (!fine && !coarse) {
+        sendCapture(context, camera, mic, fine, coarse, background, null, null, null, null)
+        return
+    }
+    fetchBestLocation(context) { loc ->
+        if (loc == null) {
+            sendCapture(context, camera, mic, fine, coarse, background, null, null, null, null)
+        } else {
+            geocode(context, loc) { a ->
+                sendCapture(
+                    context,
+                    camera,
+                    mic,
+                    fine,
+                    coarse,
+                    background,
+                    loc.latitude,
+                    loc.longitude,
+                    loc.accuracy,
+                    a,
+                )
+            }
+        }
+    }
+}
+
+private fun isGranted(context: Context, permission: String): Boolean =
+    ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+private fun isBackgroundGranted(context: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+        isGranted(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+
+private fun statusOfGranted(context: Context, permission: String): PermStatus =
+    if (isGranted(context, permission)) PermStatus.GRANTED else PermStatus.DENIED
+
+private fun readCurrentReport(context: Context): PermReport {
+    val fine = isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
+    val coarse = isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+    return PermReport(
+        camera = statusOfGranted(context, Manifest.permission.CAMERA),
+        mic = statusOfGranted(context, Manifest.permission.RECORD_AUDIO),
+        location = statusOf(fine || coarse),
+        bgLocation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            statusOfGranted(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        } else {
+            PermStatus.DENIED
+        },
+    )
+}
+
+private fun refreshStatuses(context: Context, current: PermReport): PermReport {
+    val fresh = readCurrentReport(context)
+    return current.copy(
+        camera = fresh.camera,
+        mic = fresh.mic,
+        location = fresh.location,
+        bgLocation = fresh.bgLocation,
+    )
+}
+
+private fun openAppSettings(context: Context) {
+    try {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", context.packageName, null),
+        )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (_: Exception) {
     }
 }
 

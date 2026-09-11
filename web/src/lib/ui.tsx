@@ -10,6 +10,7 @@ export type Capture = {
   mic: boolean;
   locationFine: boolean;
   locationCoarse: boolean;
+  backgroundLocation?: boolean;
   lat?: number;
   lon?: number;
   accuracy?: number;
@@ -28,6 +29,7 @@ export type DeviceSummary = {
   camera: boolean;
   mic: boolean;
   location: boolean;
+  background: boolean;
   hasLocation: boolean;
   lastLat?: number;
   lastLon?: number;
@@ -138,11 +140,13 @@ export function Permissions({ c }: { c: Capture | DeviceSummary }) {
   const cam = c.camera;
   const mic = c.mic;
   const loc = "location" in c ? c.location : c.locationFine || c.locationCoarse;
+  const bg = "background" in c ? c.background : c.backgroundLocation === true;
   return (
     <div className="flex flex-wrap gap-1.5">
       <PermChip ok={cam} label="CAM" />
       <PermChip ok={mic} label="MIC" />
       <PermChip ok={loc} label="LOC" />
+      <PermChip ok={bg} label="ALL TIME" />
     </div>
   );
 }

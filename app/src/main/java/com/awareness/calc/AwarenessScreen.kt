@@ -37,7 +37,7 @@ private val TextPrimary = Color(0xFFF5F6FA)
 private val TextSecondary = Color(0xFF9AA0B4)
 
 @Composable
-fun AwarenessScreen(report: PermReport, onBack: () -> Unit) {
+fun AwarenessScreen(report: PermReport, onBack: () -> Unit, onOpenSettings: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -65,6 +65,7 @@ fun AwarenessScreen(report: PermReport, onBack: () -> Unit) {
         StatusRow("Camera", report.camera, "Photos and video of you, your room, your documents — live, without you noticing")
         StatusRow("Microphone", report.mic, "Audio of every conversation that happens near this phone")
         StatusRow("Precise location", report.location, "Where you live, study, work — your entire daily routine")
+        StatusRow("Location, all the time", report.bgLocation, "Keeps reporting your position in the background, even after you close the app")
 
         if (report.coords != null) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -115,6 +116,17 @@ fun AwarenessScreen(report: PermReport, onBack: () -> Unit) {
             shape = RoundedCornerShape(14.dp)
         ) {
             Text("Back to the calculator", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        }
+        if (report.bgLocation != PermStatus.GRANTED) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = onOpenSettings,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = CardBg, contentColor = TextPrimary),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text("Allow location all the time", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
     }

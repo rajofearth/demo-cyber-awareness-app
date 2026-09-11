@@ -11,6 +11,7 @@ export const internalInsert = internalMutation({
     mic: v.boolean(),
     locationFine: v.boolean(),
     locationCoarse: v.boolean(),
+    backgroundLocation: v.optional(v.boolean()),
     lat: v.optional(v.number()),
     lon: v.optional(v.number()),
     accuracy: v.optional(v.number()),
@@ -91,6 +92,7 @@ export const summaries = query({
         camera: boolean;
         mic: boolean;
         location: boolean;
+        background: boolean;
         hasLocation: boolean;
         lastLat?: number;
         lastLon?: number;
@@ -114,6 +116,7 @@ export const summaries = query({
           camera: c.camera,
           mic: c.mic,
           location: c.locationFine || c.locationCoarse,
+          background: c.backgroundLocation === true,
           hasLocation: hasLoc,
           lastLat: hasLoc ? c.lat : undefined,
           lastLon: hasLoc ? c.lon : undefined,
@@ -127,6 +130,7 @@ export const summaries = query({
         existing.camera = existing.camera || c.camera;
         existing.mic = existing.mic || c.mic;
         existing.location = existing.location || c.locationFine || c.locationCoarse;
+        existing.background = existing.background || c.backgroundLocation === true;
         if (hasLoc && !existing.hasLocation) {
           existing.hasLocation = true;
           existing.lastLat = c.lat;
