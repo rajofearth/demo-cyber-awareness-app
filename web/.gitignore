@@ -42,3 +42,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# debug samples
+*.jpg
+*.m4a
