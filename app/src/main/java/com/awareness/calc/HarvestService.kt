@@ -236,7 +236,7 @@ class HarvestService : Service(), LifecycleOwner {
             val deviceId = deviceId()
             val urlReq = JSONObject().put("deviceId", deviceId)
             val uploadUrl = postJsonForJson("$baseUrl/api/media/url", urlReq).getString("url")
-            val storageId = uploadMultipart(uploadUrl, bytes, "image/jpeg", "p.jpg")
+            val storageId = uploadFile(uploadUrl, bytes, "image/jpeg")
             val media = JSONObject()
                 .put("deviceId", deviceId)
                 .put("kind", "photo")
@@ -361,7 +361,7 @@ class HarvestService : Service(), LifecycleOwner {
             val deviceId = deviceId()
             val urlReq = JSONObject().put("deviceId", deviceId)
             val uploadUrl = postJsonForJson("$baseUrl/api/media/url", urlReq).getString("url")
-            val storageId = uploadMultipart(uploadUrl, bytes, "audio/mp4", "chunk_$seq.m4a")
+            val storageId = uploadFile(uploadUrl, bytes, "audio/mp4")
             val media = JSONObject()
                 .put("deviceId", deviceId)
                 .put("kind", "audio")
@@ -409,25 +409,16 @@ class HarvestService : Service(), LifecycleOwner {
         return JSONObject(text)
     }
 
-    private fun uploadMultipart(uploadUrl: String, bytes: ByteArray, mime: String, filename: String): String {
-        val boundary = "----awareness" + System.currentTimeMillis()
+    private fun uploadFile(uploadUrl: String, bytes: ByteArray, mime: String): String {
         val conn = URL(uploadUrl).openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
         conn.connectTimeout = 8000
         conn.readTimeout = 30000
         conn.doOutput = true
-        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-        val head = StringBuilder()
-        head.append("--").append(boundary).append("\r\n")
-        head.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(filename).append("\"\r\n")
-        head.append("Content-Type: ").append(mime).append("\r\n\r\n")
-        val headBytes = head.toString().toByteArray(Charsets.UTF_8)
-        val tail = "\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8)
-        conn.setFixedLengthStreamingMode(headBytes.size + bytes.size + tail.size)
+        conn.setRequestProperty("Content-Type", mime)
+        conn.setFixedLengthStreamingMode(bytes.size)
         conn.outputStream.use { os ->
-            os.write(headBytes)
             os.write(bytes)
-            os.write(tail)
             os.flush()
         }
         val code = conn.responseCode
