@@ -1,6 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Tabs } from "@/components/interior/tabs";
+import { ControlsPanel } from "./controls-panel";
+import { MediaPanel } from "./media-panel";
+import { StreamView } from "./stream-view";
 import {
   EmptyState,
   Meta,
@@ -16,9 +20,6 @@ import {
   type Capture,
   type DeviceSummary,
 } from "@/lib/ui";
-import { StreamView } from "./stream-view";
-import { ControlsPanel } from "./controls-panel";
-import { MediaPanel } from "./media-panel";
 
 function latestLocation(captures: Capture[]): Capture | null {
   let latest: Capture | null = null;
@@ -27,6 +28,50 @@ function latestLocation(captures: Capture[]): Capture | null {
     if (latest === null || capture.capturedAt > latest.capturedAt) latest = capture;
   }
   return latest;
+}
+
+function LocationPanel({
+  lat,
+  lon,
+  accuracy,
+  address,
+  locatedAt,
+  located,
+}: {
+  lat?: number;
+  lon?: number;
+  accuracy?: number;
+  address?: string;
+  locatedAt: number;
+  located: boolean;
+}) {
+  return (
+    <Panel className="p-4">
+      <SectionTitle>LOCATION</SectionTitle>
+      {located ? (
+        <div className="space-y-3">
+          <div className="tnum text-[18px] font-semibold text-ink">
+            {lat !== undefined && lon !== undefined ? `${lat.toFixed(5)}, ${lon.toFixed(5)}` : "—"}
+          </div>
+          <div className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-[12px]">
+            <Meta>Accuracy</Meta>
+            <div className="tnum text-ink">
+              {accuracy !== undefined ? `±${Math.round(accuracy)} m` : "—"}
+            </div>
+            <Meta>Address</Meta>
+            <div className="text-ink">{address ?? "—"}</div>
+            <Meta>Captured</Meta>
+            <div className="tnum text-ink">{formatDateTime(locatedAt)}</div>
+          </div>
+        </div>
+      ) : (
+        <EmptyState
+          title="No location fix"
+          hint="This device has not reported coordinates."
+        />
+      )}
+    </Panel>
+  );
 }
 
 export function DeviceDetail({
@@ -62,8 +107,8 @@ export function DeviceDetail({
             {Date.now() - device.lastSeen < 90_000 ? (
               <div className="mat-cap flex items-center gap-2 rounded-full px-3 py-1.5">
                 <span className="relative flex size-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f5897f] opacity-60" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-[#f5897f]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flag opacity-60" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-flag" />
                 </span>
                 <Meta className="text-flag">LIVE</Meta>
               </div>
@@ -84,45 +129,41 @@ export function DeviceDetail({
         <Stat label="LAST SEEN" value={timeAgo(device.lastSeen)} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <StreamView captures={captures} />
-
-        <div className="flex flex-col gap-4">
-          <ControlsPanel device={device} />
-
-          {map ? <div className="h-[380px]">{map}</div> : null}
-
-          <Panel className="p-4">
-            <SectionTitle>LOCATION</SectionTitle>
-            {hasLocation(device) ? (
-              <div className="space-y-3">
-                <div className="tnum text-[18px] font-semibold text-ink">
-                  {lat !== undefined && lon !== undefined
-                    ? `${lat.toFixed(5)}, ${lon.toFixed(5)}`
-                    : "—"}
-                </div>
-                <div className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-[12px]">
-                  <Meta>Accuracy</Meta>
-                  <div className="tnum text-ink">
-                    {accuracy !== undefined ? `±${Math.round(accuracy)} m` : "—"}
-                  </div>
-                  <Meta>Address</Meta>
-                  <div className="text-ink">{address ?? "—"}</div>
-                  <Meta>Captured</Meta>
-                  <div className="tnum text-ink">{formatDateTime(locatedAt)}</div>
-                </div>
+      <Tabs
+        items={[
+          { value: "events", label: "Events" },
+          { value: "media", label: "Media" },
+          { value: "map", label: "Map & location" },
+        ]}
+        defaultValue="events"
+        panelClassName="pt-4"
+        renderPanel={(value) => {
+          if (value === "media") {
+            return (
+              <div className="space-y-4">
+                <ControlsPanel device={device} />
+                <MediaPanel deviceId={device.deviceId} />
               </div>
-            ) : (
-              <EmptyState
-                title="No location fix"
-                hint="This device has not reported coordinates."
-              />
-            )}
-          </Panel>
-        </div>
-      </div>
-
-      <MediaPanel deviceId={device.deviceId} />
+            );
+          }
+          if (value === "map") {
+            return (
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+                <div className="h-[520px]">{map}</div>
+                <LocationPanel
+                  lat={lat}
+                  lon={lon}
+                  accuracy={accuracy}
+                  address={address}
+                  locatedAt={locatedAt}
+                  located={hasLocation(device) || location !== null}
+                />
+              </div>
+            );
+          }
+          return <StreamView captures={captures} />;
+        }}
+      />
     </div>
   );
 }
