@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
 import type { ReactNode } from "react";
 import { Tabs } from "@/components/interior/tabs";
 import { ControlsPanel } from "./controls-panel";
 import { MediaPanel } from "./media-panel";
 import { StreamView } from "./stream-view";
 import {
+  deviceName,
   EmptyState,
   Meta,
   Panel,
@@ -83,19 +87,77 @@ export function DeviceDetail({
   captures: Capture[];
   map?: ReactNode;
 }) {
+  const rename = useMutation(api.captures.renameDevice);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
   const location = latestLocation(captures);
   const lat = device.lastLat ?? location?.lat;
   const lon = device.lastLon ?? location?.lon;
   const accuracy = device.lastAccuracy ?? location?.accuracy;
   const address = device.lastAddress ?? location?.address;
   const locatedAt = location?.capturedAt ?? device.lastSeen;
+  const name = deviceName(device);
 
   return (
     <div className="space-y-4">
       <Panel className="p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-[20px] font-semibold text-ink">{device.deviceModel}</div>
+            {editing ? (
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void rename({ deviceId: device.deviceId, nickname: draft });
+                  setEditing(false);
+                }}
+              >
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  autoFocus
+                  maxLength={40}
+                  placeholder={device.friendlyName ?? device.deviceModel}
+                  className="mat-well w-full max-w-[280px] rounded-[10px] px-3 py-2 text-[13px] text-ink outline-none placeholder:text-ink-3"
+                />
+                <button
+                  type="submit"
+                  className="mat-cap rounded-[10px] px-3 py-2 text-[12.5px] text-ink hover:bg-white/[0.04]"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="rounded-[10px] px-3 py-2 text-[12.5px] text-ink-3 hover:bg-white/[0.04]"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-baseline gap-3">
+                <div className="truncate text-[20px] font-semibold text-ink">
+                  {name}
+                  {device.nickname ? (
+                    <span className="text-[15px] font-normal text-ink-3">
+                      {" "}
+                      ({device.deviceModel})
+                    </span>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(device.nickname ?? "");
+                    setEditing(true);
+                  }}
+                  className="shrink-0 text-[12px] text-ink-3 underline decoration-dotted underline-offset-4 hover:text-ink-2"
+                >
+                  Rename
+                </button>
+              </div>
+            )}
             <div className="mt-1.5">
               <Meta>
                 {shortId(device.deviceId)} · {device.osVersion} · app {device.appVersion}

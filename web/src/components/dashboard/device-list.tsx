@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  deviceName,
   EmptyState,
   Permissions,
   shortId,
@@ -76,13 +77,14 @@ export function DeviceList({
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-[13px] font-medium text-ink">
-                    {device.deviceModel}
+                    {deviceName(device)}
                   </span>
                   <span className="meta shrink-0 text-ink-3">
                     {timeAgo(device.lastSeen)}
                   </span>
                 </div>
-                <div className="meta mt-1.5 text-ink-3">
+                <div className="meta mt-1.5 truncate text-ink-3">
+                  {device.nickname ? `${device.deviceModel} · ` : ""}
                   {shortId(device.deviceId)} · {device.captureCount} events
                 </div>
                 <div className="mt-2">

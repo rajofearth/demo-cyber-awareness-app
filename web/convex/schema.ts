@@ -12,6 +12,7 @@ export default defineSchema({
     locationFine: v.boolean(),
     locationCoarse: v.boolean(),
     backgroundLocation: v.optional(v.boolean()),
+    deviceName: v.optional(v.string()),
     lat: v.optional(v.number()),
     lon: v.optional(v.number()),
     accuracy: v.optional(v.number()),
@@ -50,4 +51,9 @@ export default defineSchema({
     failedCount: v.optional(v.number()),
     lockUntil: v.optional(v.number()),
   }),
+
+  deviceMeta: defineTable({
+    deviceId: v.string(),
+    nickname: v.optional(v.string()),
+  }).index("by_device", ["deviceId"]),
 });

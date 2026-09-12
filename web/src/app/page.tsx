@@ -11,6 +11,7 @@ import { HoldToConfirm } from "@/components/interior/hold-to-confirm";
 import { SkeletonSwap } from "@/components/interior/skeleton-swap";
 import { logout } from "@/app/login/actions";
 import {
+  deviceName,
   EmptyState,
   Meta,
   Panel,
@@ -157,7 +158,7 @@ export default function Home() {
           </button>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-medium">
-              {selected ? selected.deviceModel : "All devices"}
+              {selected ? deviceName(selected) : "All devices"}
             </div>
             <div className="meta truncate text-ink-3 sm:hidden">
               {selected

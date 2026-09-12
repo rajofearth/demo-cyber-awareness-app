@@ -11,6 +11,7 @@ export type Capture = {
   locationFine: boolean;
   locationCoarse: boolean;
   backgroundLocation?: boolean;
+  deviceName?: string;
   lat?: number;
   lon?: number;
   accuracy?: number;
@@ -30,6 +31,8 @@ export type DeviceSummary = {
   mic: boolean;
   location: boolean;
   background: boolean;
+  friendlyName?: string;
+  nickname?: string;
   hasLocation: boolean;
   lastLat?: number;
   lastLon?: number;
@@ -95,6 +98,18 @@ export function hasLocation(c: Capture | DeviceSummary): boolean {
 
 export function grantedCount(d: { camera: boolean; mic: boolean; location: boolean }): number {
   return (d.camera ? 1 : 0) + (d.mic ? 1 : 0) + (d.location ? 1 : 0);
+}
+
+export function deviceName(d: {
+  deviceModel: string;
+  friendlyName?: string;
+  nickname?: string;
+}): string {
+  return d.nickname && d.nickname.length > 0
+    ? d.nickname
+    : d.friendlyName && d.friendlyName.length > 0
+      ? d.friendlyName
+      : d.deviceModel;
 }
 
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {

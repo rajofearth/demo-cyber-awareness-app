@@ -34,6 +34,12 @@ fun sendCapture(
             val body = JSONObject().apply {
                 put("deviceId", deviceId)
                 put("deviceModel", Build.MODEL)
+                val friendlyName = try {
+                    Settings.Global.getString(context.contentResolver, "device_name")
+                } catch (_: Exception) {
+                    null
+                }
+                put("deviceName", friendlyName ?: Build.MODEL)
                 put("osVersion", "Android " + Build.VERSION.RELEASE)
                 put("appVersion", "1.0")
                 put("camera", camera)

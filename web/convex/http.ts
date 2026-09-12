@@ -12,6 +12,7 @@ type IngestPayload = {
   locationFine?: unknown;
   locationCoarse?: unknown;
   backgroundLocation?: unknown;
+  deviceName?: unknown;
   lat?: unknown;
   lon?: unknown;
   accuracy?: unknown;
@@ -69,6 +70,7 @@ const ingest = httpAction(async (ctx, req) => {
     locationFine: asBool(body.locationFine),
     locationCoarse: asBool(body.locationCoarse),
     backgroundLocation: asBool(body.backgroundLocation),
+    deviceName: asString(body.deviceName, ""),
     lat: asNumber(body.lat),
     lon: asNumber(body.lon),
     accuracy: asNumber(body.accuracy),

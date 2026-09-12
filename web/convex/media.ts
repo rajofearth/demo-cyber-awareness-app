@@ -14,6 +14,20 @@ export const internalInsertMedia = internalMutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("media", args);
+    const limit = args.kind === "photo" ? 50 : 10;
+    const rows = await ctx.db
+      .query("media")
+      .withIndex("by_device", (q) => q.eq("deviceId", args.deviceId))
+      .order("desc")
+      .collect();
+    const overflow = rows.filter((r) => r.kind === args.kind).slice(limit);
+    for (const row of overflow) {
+      try {
+        await ctx.storage.delete(row.storageId);
+      } catch {
+      }
+      await ctx.db.delete(row._id);
+    }
   },
 });
 

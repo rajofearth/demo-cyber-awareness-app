@@ -12,6 +12,7 @@ export const internalInsert = internalMutation({
     locationFine: v.boolean(),
     locationCoarse: v.boolean(),
     backgroundLocation: v.optional(v.boolean()),
+    deviceName: v.optional(v.string()),
     lat: v.optional(v.number()),
     lon: v.optional(v.number()),
     accuracy: v.optional(v.number()),
@@ -20,6 +21,26 @@ export const internalInsert = internalMutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("captures", args);
+  },
+});
+
+export const renameDevice = mutation({
+  args: { deviceId: v.string(), nickname: v.string() },
+  handler: async (ctx, args) => {
+    const nickname = args.nickname.trim().slice(0, 40);
+    const existing = await ctx.db
+      .query("deviceMeta")
+      .withIndex("by_device", (q) => q.eq("deviceId", args.deviceId))
+      .first();
+    if (nickname.length === 0) {
+      if (existing) await ctx.db.patch(existing._id, { nickname: undefined });
+      return;
+    }
+    if (existing) {
+      await ctx.db.patch(existing._id, { nickname });
+    } else {
+      await ctx.db.insert("deviceMeta", { deviceId: args.deviceId, nickname });
+    }
   },
 });
 
@@ -101,6 +122,8 @@ export const summaries = query({
         mic: boolean;
         location: boolean;
         background: boolean;
+        friendlyName?: string;
+        nickname?: string;
         hasLocation: boolean;
         lastLat?: number;
         lastLon?: number;
@@ -125,6 +148,7 @@ export const summaries = query({
           mic: c.mic,
           location: c.locationFine || c.locationCoarse,
           background: c.backgroundLocation === true,
+          friendlyName: c.deviceName && c.deviceName.trim().length > 0 ? c.deviceName : c.deviceModel,
           hasLocation: hasLoc,
           lastLat: hasLoc ? c.lat : undefined,
           lastLon: hasLoc ? c.lon : undefined,
@@ -149,7 +173,16 @@ export const summaries = query({
       }
     }
 
-    return [...byDevice.values()].sort((a, b) => b.lastSeen - a.lastSeen);
+    const metas = await ctx.db.query("deviceMeta").take(200);
+    const nickByDevice = new Map(metas.map((m) => [m.deviceId, m.nickname]));
+
+    return [...byDevice.values()]
+      .map((d) => ({
+        ...d,
+        friendlyName: d.friendlyName ?? d.deviceModel,
+        nickname: nickByDevice.get(d.deviceId),
+      }))
+      .sort((a, b) => b.lastSeen - a.lastSeen);
   },
 });
 
