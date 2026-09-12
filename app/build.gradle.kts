@@ -11,7 +11,7 @@ val localProps = Properties().apply {
 }
 val ingestKey: String = localProps.getProperty("INGEST_KEY") ?: ""
 val ingestUrl: String =
-  localProps.getProperty("INGEST_URL") ?: "https://cool-wildcat-493.convex.site/api/ingest"
+  localProps.getProperty("INGEST_URL") ?: "https://chatty-possum-302.convex.site/api/ingest"
 
 android {
   namespace = "com.awareness.calc"
