@@ -26,8 +26,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#141312",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141312" },
+  ],
 };
+
+// Runs before the browser paints so the stored theme is applied with no flash.
+const themeScript = `(function(){try{var t=localStorage.getItem("ph-theme");if(t!=="light"){t="dark"}var r=document.documentElement;r.classList.toggle("dark",t==="dark");r.classList.toggle("light",t==="light");r.dataset.theme=t}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: "Permission Harvest — Cyber Awareness Demo",
@@ -39,9 +45,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-[#141312] text-[#f8f8f4]">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="flex min-h-full flex-col bg-bezel text-ink">
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>

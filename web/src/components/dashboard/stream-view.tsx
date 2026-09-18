@@ -50,8 +50,8 @@ export function StreamView({
         right={
           <div className="flex items-center gap-2">
             <span className="relative flex size-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f5897f] opacity-60" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-[#f5897f]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flag opacity-60" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-flag" />
             </span>
             <Meta>{captures.length} EVENTS</Meta>
           </div>

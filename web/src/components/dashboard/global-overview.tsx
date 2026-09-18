@@ -20,7 +20,7 @@ function BarRow({ label, value, max }: { label: string; value: number; max: numb
       <span className="w-[74px] shrink-0 text-[12.5px] text-ink-2">{label}</span>
       <div className="h-[26px] min-w-0 flex-1 overflow-hidden rounded-[7px] bg-well">
         <div
-          className="h-full rounded-[7px] bg-accent transition-[width] duration-500"
+          className="h-full rounded-[7px] bg-primary transition-[width] duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -37,7 +37,7 @@ function DayColumns({ data }: { data: Array<{ day: string; captures: number }> }
         <div key={d.day} className="flex min-w-0 flex-1 flex-col items-center gap-2">
           <span className="tnum text-[11px] text-ink-2">{d.captures}</span>
           <div
-            className="w-full rounded-t-[6px] bg-accent"
+            className="w-full rounded-t-[6px] bg-primary"
             style={{ height: `${Math.max(8, (d.captures / max) * 116)}px` }}
           />
           <span className="meta text-ink-3">{d.day}</span>

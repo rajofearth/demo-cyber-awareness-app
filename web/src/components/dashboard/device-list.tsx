@@ -57,8 +57,8 @@ export function DeviceList({
               onClick={() => onSelect(null)}
               className={`mb-1 w-full rounded-[10px] px-3 py-3 text-left transition-colors ${
                 selectedId === null
-                  ? "mat-row ring-1 ring-accent/40"
-                  : "hover:bg-white/[0.03]"
+                  ? "mat-row ring-1 ring-primary/40"
+                  : "hover:bg-ink/[0.03]"
               }`}
             >
               <div className="text-[13px] font-medium text-ink">All devices</div>
@@ -70,9 +70,9 @@ export function DeviceList({
                 type="button"
                 onClick={() => onSelect(device.deviceId)}
                 className={`mb-1 w-full rounded-[10px] px-3 py-3 text-left transition-colors ${
-                  selectedId === device.deviceId
-                    ? "mat-row ring-1 ring-accent/40"
-                    : "hover:bg-white/[0.03]"
+                   selectedId === device.deviceId
+                     ? "mat-row ring-1 ring-primary/40"
+                     : "hover:bg-ink/[0.03]"
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-2">

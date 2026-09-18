@@ -18,9 +18,11 @@ import {
 export function MapPanel({
   points,
   className = "h-full",
+  theme = "dark",
 }: {
   points: LocationPoint[];
   className?: string;
+  theme?: "light" | "dark";
 }) {
   if (points.length === 0) {
     return (
@@ -40,30 +42,32 @@ export function MapPanel({
   ];
   const zoom = visible.length === 1 ? 15 : visible.length <= 5 ? 11 : 10;
   const trail = visible.map((p) => [p.lon, p.lat] as [number, number]);
+  // MapLibre paint colors can't resolve CSS variables, so pick per theme.
+  const trailColor = theme === "dark" ? "#f5897f" : "#c0442f";
 
   return (
     <Panel className={`overflow-hidden ${className}`}>
-      <Map center={center} zoom={zoom}>
+      <Map center={center} zoom={zoom} theme={theme}>
         <MapControls />
         {visible.length >= 2 ? (
-          <MapRoute coordinates={trail} color="#f5897f" width={2} opacity={0.55} />
+          <MapRoute coordinates={trail} color={trailColor} width={2} opacity={0.55} />
         ) : null}
         {visible.map((p) => (
           <MapMarker key={p._id} longitude={p.lon} latitude={p.lat}>
             <MarkerContent>
               <div className="relative">
-                <div className="absolute -inset-2 animate-ping rounded-full bg-[#f5897f]/25" />
-                <div className="size-3.5 rounded-full border-2 border-white bg-[#f5897f]" />
+                <div className="absolute -inset-2 animate-ping rounded-full bg-flag/25" />
+                <div className="size-3.5 rounded-full border-2 border-white bg-flag" />
               </div>
             </MarkerContent>
-            <MarkerPopup className="bg-white! text-stone-800!">
+            <MarkerPopup className="bg-popover! text-popover-foreground!">
               <div className="text-[12px] leading-snug">
                 <div>{p.address ?? "No address"}</div>
-                <div className="tnum text-stone-600">
+                <div className="tnum text-muted-foreground">
                   {p.lat.toFixed(5)}, {p.lon.toFixed(5)}
                   {p.accuracy != null ? ` · ±${Math.round(p.accuracy)}m` : ""}
                 </div>
-                <div className="tnum text-stone-600">{formatDateTime(p.capturedAt)}</div>
+                <div className="tnum text-muted-foreground">{formatDateTime(p.capturedAt)}</div>
               </div>
             </MarkerPopup>
           </MapMarker>

@@ -9,6 +9,7 @@ import { GlobalOverview } from "@/components/dashboard/global-overview";
 import { DeviceDetail } from "@/components/dashboard/device-detail";
 import { HoldToConfirm } from "@/components/interior/hold-to-confirm";
 import { SkeletonSwap } from "@/components/interior/skeleton-swap";
+import { ThemeToggle, useTheme } from "@/components/theme-toggle";
 import { logout } from "@/app/login/actions";
 import {
   deviceName,
@@ -37,6 +38,7 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { theme } = useTheme();
 
   const summaries = useQuery(api.captures.summaries);
   const stats = useQuery(api.captures.stats);
@@ -129,7 +131,7 @@ export default function Home() {
           <form action={logout}>
             <button
               type="submit"
-              className="mat-cap min-h-[44px] w-full rounded-[10px] px-3 py-2 text-[12.5px] text-ink-2 hover:bg-white/[0.04]"
+              className="mat-cap min-h-[44px] w-full rounded-[10px] px-3 py-2 text-[12.5px] text-ink-2 hover:bg-ink/[0.04] hover:text-ink"
             >
               Sign out
             </button>
@@ -166,11 +168,14 @@ export default function Home() {
                 : `${devices.length} DEVICES`}
             </div>
           </div>
-          <div className="ml-auto hidden shrink-0 items-center gap-4 sm:flex">
-            <Meta>{stats ? `${stats.totalCaptures} CAPTURES` : "CONNECTING"}</Meta>
-            <Meta className="text-flag">
-              {stats ? `${stats.fullGrants} FULL GRANTS` : ""}
-            </Meta>
+          <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
+            <div className="hidden items-center gap-4 sm:flex">
+              <Meta>{stats ? `${stats.totalCaptures} CAPTURES` : "CONNECTING"}</Meta>
+              <Meta className="text-flag">
+                {stats ? `${stats.fullGrants} FULL GRANTS` : ""}
+              </Meta>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -192,13 +197,18 @@ export default function Home() {
             <DeviceDetail
               device={selected}
               captures={(deviceCaptures as Capture[] | undefined) ?? []}
-              map={<MapPanel points={(deviceLocations as LocationPoint[] | undefined) ?? []} />}
+              map={
+                <MapPanel
+                  points={(deviceLocations as LocationPoint[] | undefined) ?? []}
+                  theme={theme}
+                />
+              }
             />
           ) : (
             <GlobalOverview
               stats={stats}
               devices={devices}
-              map={<MapPanel points={globalPoints} />}
+              map={<MapPanel points={globalPoints} theme={theme} />}
             />
           )}
         </div>

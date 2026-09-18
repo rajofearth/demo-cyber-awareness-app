@@ -123,14 +123,14 @@ export function DeviceDetail({
                 />
                 <button
                   type="submit"
-                  className="mat-cap rounded-[10px] px-3 py-2 text-[12.5px] text-ink hover:bg-white/[0.04]"
+                  className="mat-cap rounded-[10px] px-3 py-2 text-[12.5px] text-ink hover:bg-ink/[0.06]"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="rounded-[10px] px-3 py-2 text-[12.5px] text-ink-3 hover:bg-white/[0.04]"
+                  className="rounded-[10px] px-3 py-2 text-[12.5px] text-ink-3 hover:bg-ink/[0.06] hover:text-ink-2"
                 >
                   Cancel
                 </button>

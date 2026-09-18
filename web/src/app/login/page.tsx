@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,9 @@ export default async function LoginPage() {
 
   return (
     <div className="grid min-h-dvh place-items-center bg-bezel px-4 text-ink">
+      <div className="fixed top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-[380px]">
         <div className="mb-6 text-center">
           <div className="flex items-center justify-center gap-2.5">

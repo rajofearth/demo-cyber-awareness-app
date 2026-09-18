@@ -56,7 +56,7 @@ export function ControlsPanel({ device }: { device: DeviceSummary }) {
             type="button"
             disabled={inFlight === b.key}
             onClick={() => onClick(b.key, b.run)}
-            className={`mat-cap min-h-[44px] w-full rounded-[10px] px-3 py-2.5 text-ink-2 transition-colors hover:bg-white/[0.04] hover:text-ink disabled:opacity-50 ${
+            className={`mat-cap min-h-[44px] w-full rounded-[10px] px-3 py-2.5 text-ink-2 transition-colors hover:bg-ink/[0.06] hover:text-ink disabled:opacity-50 ${
               inFlight === b.key ? "cursor-wait" : "cursor-pointer"
             }`}
           >

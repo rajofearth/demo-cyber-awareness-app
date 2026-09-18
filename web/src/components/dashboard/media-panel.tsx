@@ -76,7 +76,7 @@ function AudioRow({
           aria-label={playing ? "Pause" : "Play"}
           onClick={onToggle}
           className={`grid size-11 shrink-0 place-items-center rounded-full ${
-            active && playing ? "bg-accent/15 text-accent" : "mat-cap text-ink-2"
+            active && playing ? "bg-primary/15 text-primary" : "mat-cap text-ink-2"
           }`}
         >
           {active && playing ? <PauseIcon /> : <PlayIcon />}
@@ -101,7 +101,7 @@ function AudioRow({
             }}
           >
             <div
-              className={`h-full rounded-full ${active && playing ? "bg-accent" : "bg-ink-3/50"}`}
+              className={`h-full rounded-full ${active && playing ? "bg-primary" : "bg-ink-3/50"}`}
               style={{ width: `${ratio * 100}%` }}
             />
           </div>
